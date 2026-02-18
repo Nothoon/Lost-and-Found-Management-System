@@ -16,6 +16,7 @@ def on_button_click():
 # 1. Create the main application window
 window = tk.Tk()
 x  = 2
+willsvar = 2
 
 window.title("My First GUI")
 window.geometry("300x200") # Set the initial size of the window (width x height)
@@ -24,7 +25,7 @@ window.geometry("300x200") # Set the initial size of the window (width x height)
 label = tk.Label(window, text="Hello, Tkinter!", font=("Helvetica", 16))
 # Arrange the label within the window using the pack() geometry manager
 label.pack(pady=20) # Add vertical padding for better layout
-x2 = 5
+
 # 3. Add a Button widget
 button = tk.Button(window, text="Click Me", command=on_button_click)
 # Arrange the button within the window
