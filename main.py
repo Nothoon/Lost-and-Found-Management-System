@@ -17,6 +17,9 @@ def on_button_click():
 window = tk.Tk()
 x  = 2
 willsvar = 2
+def function1(int x){
+
+}
 
 window.title("My First GUI")
 window.geometry("300x200") # Set the initial size of the window (width x height)
