@@ -1,5 +1,5 @@
 import tkinter as tk
-
+import time as t
 import math.py
 
 import json
@@ -17,9 +17,24 @@ def on_button_click():
 window = tk.Tk()
 x  = 2
 willsvar = 2
-def function1(int x){
+class item: 
+    def __init__(name,date,color):
+        self.name = name
+        self.date = date
+        self.color = color
+        isFound = False
+    
+    def collectItem(self):
+        isFound = True
+        print("You have collected the item: " + self.name)
 
-}
+    def itemIsFound(self):
+        if(self.isFound == True):
+            print("You have found the item: " + self.name)
+        else:
+            print("You have not found the item: " + self.name)
+
+
 
 window.title("My First GUI")
 window.geometry("300x200") # Set the initial size of the window (width x height)
