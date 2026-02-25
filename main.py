@@ -27,8 +27,6 @@ Blue1.resizable(False, False)
 
 x  = 2
 canyouseethisVAR = 1
-
-
 class item: 
     def __init__(name,date,color):
         self.name = name
