@@ -16,7 +16,7 @@ def on_button_click():
 # 1. Create the main application window
 window = tk.Tk()
 x  = 2
-willsvar = 2
+canyouseethisVAR = 1
 class item: 
     def __init__(name,date,color):
         self.name = name
