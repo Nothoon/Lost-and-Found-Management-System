@@ -1,6 +1,6 @@
 import tkinter as tk
 import time as t
-import math.py
+import math
 
 import json
 import mailbox
@@ -36,8 +36,8 @@ class item:
 
 
 
-window.title("My First GUI")
-window.geometry("300x200") # Set the initial size of the window (width x height)
+window.title("Lost and Found Management System")
+window.geometry("600x400") # Set the initial size of the window (width x height)
 
 # 2. Add a Label widget
 label = tk.Label(window, text="Hello, Tkinter!", font=("Helvetica", 16))
