@@ -17,6 +17,14 @@ def on_button_click():
 
 # 1. Create the main application window
 window = tk.Tk()
+
+# make new window that runs as fake app blue window
+Blue1 = tk.TK()
+Blue1.title("Blue1 Window")
+Blue1.geometry("400x300")
+Blue1.configure(bg="blue")
+Blue1.resizable(False, False)
+
 x  = 2
 canyouseethisVAR = 1
 
