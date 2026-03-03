@@ -1,7 +1,6 @@
 import tkinter as tk
 import time as t
 import math
-from http import web
 import json
 import mailbox
 import turtle 
@@ -19,7 +18,7 @@ def on_button_click():
 window = tk.Tk()
 
 # make new window that runs as fake app blue window
-Blue1 = tk.TK()
+Blue1 = tk.Tk()
 Blue1.title("Blue1 Window")
 Blue1.geometry("400x300")
 Blue1.configure(bg="blue")
@@ -28,12 +27,12 @@ Blue1.resizable(False, False)
 x  = 2
 canyouseethisVAR = 13
 class item: 
-    def __init__(name,date,color):
+    def __init__(self, name, description, location, date_lost):
         self.name = name
-        self.date = date
-        self.color = color
-        isFound = False
-    
+        self.description = description
+        self.location = location
+        self.date_lost = date_lost
+        self.isFound = False
     def collectItem(self):
         isFound = True
         print("You have collected the item: " + self.name)
