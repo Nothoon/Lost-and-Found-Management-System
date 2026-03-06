@@ -1,11 +1,203 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lost & Found - Employee Login</title>
+
+  <style>
+    label.add-margin {
+      display: block;
+      margin-bottom: 10px;
+    }
+    input {
+      margin-bottom: 10px;
+    }
+    .container {
+      font-family: 'Times New Roman', Times, serif;
+      background-color: beige;
+      padding: 30px;
+      border-radius: 8px;
+      width: 100%;
+      max-width: 450px;
+
+      /* Key change: let the box grow with content */
+      height: auto;
+      max-height: none;
+      box-sizing: border-box;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      background-color: dimgrey;
+      justify-content: flex-start;
+      align-items: center;
+      min-height: 100vh; /* better when content grows */
+      padding-top: 20px;
+      box-sizing: border-box;
+    }
+    .message {
+      margin-top: 10px;
+    }
+    .actions {
+      margin-top: 10px;
+    }
+    details {
+      margin-top: 20px;
+    }
+
+    /* Small helper layout for password + toggle button */
+    .password-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .password-row input {
+      flex: 1;
+      margin-bottom: 10px; /* keep consistent spacing */
+    }
+    .password-row button {
+      margin-bottom: 10px;
+    }
+
+    .checkbox-row {
+      margin-bottom: 10px;
+    }
+  </style>
 </head>
+
 <body>
-    
+  <div class="container">
+    <h1>Employee Login</h1>
+
+    <p>Please sign in with your employee credentials to access the Lost & Found system.</p>
+
+    <!-- Login Form -->
+    <form id="loginForm">
+      <label for="emailLogin" class="add-margin">Email Address:</label>
+      <input type="text" id="emailLogin" name="emailLogin" placeholder="name@company.com" required />
+
+      <label for="passwordLogin" class="add-margin">Password:</label>
+      <div class="password-row">
+        <input type="password" id="passwordLogin" name="passwordLogin" placeholder="Enter password" required />
+        <button type="button" id="togglePasswordBtn" onclick="togglePasswordVisibility()">
+          Show
+        </button>
+      </div>
+
+      <div class="checkbox-row">
+        <input type="checkbox" id="rememberMe" name="rememberMe" />
+        <label for="rememberMe">Remember me</label>
+      </div>
+
+      <button type="submit">Sign In</button>
+
+      <p id="loginMessage" class="message"></p>
+    </form>
+
+    <div class="actions">
+      <button type="button" onclick="toggleForgotPassword()">Reset my password</button>
+    </div>
+
+    <br>
+
+    <div id="forgotPasswordSection" style="display:none;">
+      <h2>Password Reset</h2>
+      <p>Enter your email address and we’ll send password reset instructions (demo only).</p>
+
+      <form id="forgotForm">
+        <label for="emailReset" class="add-margin">Email Address:</label>
+        <input type="text" id="emailReset" name="emailReset" placeholder="name@company.com" required />
+
+        <button type="submit">Send Reset Email</button>
+
+        <p id="forgotMessage" class="message"></p>
+      </form>
+    </div>
+
+    <hr>
+    <!-- testing -->
+    <details>
+      <summary>FOR TESTING</summary>
+      <p>
+        Test login:<br>
+        Email: <b>test@gmail.com</b><br>
+        Password: <b>TEST</b>
+      </p>
+    </details>
+  </div>
+
+  <script>
+    function isEmailBasicValid(emailText) {
+      return emailText.includes("@") && emailText.includes(".");
+    }
+
+    function togglePasswordVisibility() {
+      const passwordInput = document.getElementById("passwordLogin");
+      const btn = document.getElementById("togglePasswordBtn");
+
+      if (passwordInput.type === "password") {
+        passwordInput.type = "text";
+        btn.textContent = "Hide";
+      } else {
+        passwordInput.type = "password";
+        btn.textContent = "Show";
+      }
+    }
+
+    // toggle forgot password section show/hide
+    function toggleForgotPassword() {
+      const section = document.getElementById("forgotPasswordSection");
+      const forgotMsg = document.getElementById("forgotMessage");
+
+      if (section.style.display === "none" || section.style.display === "") {
+        section.style.display = "block";
+      } else {
+        section.style.display = "none";
+        if (forgotMsg) {
+          forgotMsg.textContent = "";
+        }
+      }
+    }
+
+    //login submit
+    document.getElementById("loginForm").addEventListener("submit", function (event) {
+      event.preventDefault(); // stop page refresh
+
+      const email = document.getElementById("emailLogin").value.trim();
+      const password = document.getElementById("passwordLogin").value;
+      const messageEl = document.getElementById("loginMessage");
+
+      //validate email format
+      if (!isEmailBasicValid(email)) {
+        messageEl.textContent = 'Please enter a valid email address (include "@" and ".").';
+        return;
+      }
+
+      //check test credentials
+      if (email === "test@gmail.com" && password === "TEST") {
+        messageEl.textContent = "Success! You are now signed in.";
+      } else {
+        messageEl.textContent = "Incorrect email address or password.";
+      }
+
+    });
+
+    //forgot password submit
+    document.getElementById("forgotForm").addEventListener("submit", function (event) {
+      event.preventDefault(); // stop page refresh
+
+      const email = document.getElementById("emailReset").value.trim();
+      const msg = document.getElementById("forgotMessage");
+
+      // validate email format
+      if (!isEmailBasicValid(email)) {
+        msg.textContent = 'Please enter a valid email address (include "@" and ".").';
+        return;
+      }
+
+      msg.textContent = "If this email is on file, password reset instructions will be sent.";
+    });
+  </script>
 </body>
 </html>
