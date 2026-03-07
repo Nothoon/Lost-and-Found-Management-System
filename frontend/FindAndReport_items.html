@@ -1,15 +1,74 @@
-<body>
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Find and Report Items</title>
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>Lost Items</title>
+
+<style>
+
+body{
+    font-family: Arial;
+    text-align: center;
+}
+
+
+.items{
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-top: 40px;
+}
+
+.item{
+    border: 1px solid gray;
+    padding: 15px;
+    width: 200px;
+}
+
+.item img{
+    width:150px;
+}
+
+
+</style>
+
     </head>
 
-    <template>
-        <h1>Find and Report Items</h1>
+    <body>
 
-    </template>
-    <textarea name="description" id="description" placeholder="Describe the item you are looking for..." rows="5" cols="50"></textarea>
+    <label for="search">Search Lost Items:</label>
 
+        <input type="text" id="search" name="search" placeholder="Enter item name">
+
+        <button type="submit">Search</button>
+
+</form>
+
+<h1>Place Holder: Lost & Found Items</h1>
+<p>Items reported by students</p>
+
+<div class="items">
+
+    <div class="item">
+        <img src="phone.png" alt="Lost phone">
+        <h3>Black Phone</h3>
+        <p>Reported by: Alex</p>
+    </div>
+
+<div class="item">
+    <img src="keys.png" alt="Lost keys">
+    <h3>Car Keys</h3>
+    <p>Reported by: Maria</p>
+</div>
+
+<div class="item">
+    <img src="backpack.png" alt="Lost backpack">
+    <h3>Blue Backpack</h3>
+    <p>Reported by: Jordan</p>
+</div>
+
+</div>
 
 </body>
+
+</html>
