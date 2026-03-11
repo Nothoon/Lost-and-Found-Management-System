@@ -4,65 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lost & Found - Employee Login</title>
-
+  <link rel="stylesheet" href="explo.css">
   <style>
-    label.add-margin {
-      display: block;
-      margin-bottom: 10px;
-    }
-    input {
-      margin-bottom: 10px;
-    }
-    .container {
-      font-family: 'Times New Roman', Times, serif;
-      background-color: beige;
-      padding: 30px;
-      border-radius: 8px;
-      width: 100%;
-      max-width: 450px;
-
-      /* Key change: let the box grow with content */
-      height: auto;
-      max-height: none;
-      box-sizing: border-box;
-    }
-    body {
-      display: flex;
-      flex-direction: column;
-      background-color: dimgrey;
-      justify-content: flex-start;
-      align-items: center;
-      min-height: 100vh; /* better when content grows */
-      padding-top: 20px;
-      box-sizing: border-box;
-    }
-    .message {
-      margin-top: 10px;
-    }
-    .actions {
-      margin-top: 10px;
-    }
-    details {
-      margin-top: 20px;
-    }
-
-    /* Small helper layout for password + toggle button */
-    .password-row {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-    .password-row input {
-      flex: 1;
-      margin-bottom: 10px; /* keep consistent spacing */
-    }
-    .password-row button {
-      margin-bottom: 10px;
-    }
-
-    .checkbox-row {
-      margin-bottom: 10px;
-    }
   </style>
 </head>
 
@@ -176,7 +119,7 @@
 
       //check test credentials
       if (email === "test@gmail.com" && password === "TEST") {
-        messageEl.textContent = "Success! You are now signed in.";
+        window.location.href = "employee-dashboard.html";
       } else {
         messageEl.textContent = "Incorrect email address or password.";
       }
