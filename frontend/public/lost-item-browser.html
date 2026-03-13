@@ -1,74 +1,58 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-<title>Lost Items</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lost & Found — Browse Found Items</title>
+  <link rel="stylesheet" href="../css/global.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/employee.css">
+</head>
+<body>
 
-<style>
+  <header class="site-header">
+    <span class="logo">University Lost &amp; Found</span>
+    <nav>
+      <a href="../index.html">← Back to Home</a>
+      <a href="lost-item-request-form.html">Report Lost Item</a>
+    </nav>
+  </header>
 
-body{
-    font-family: Arial;
-    text-align: center;
-}
+  <div class="page-wrapper" style="align-items: stretch; max-width: 1000px; margin: 0 auto;">
 
+    <div style="padding: 32px 16px 0;">
+      <h1>Browse Found Items</h1>
+      <p>Items currently held at the Lost &amp; Found desk. See something that's yours? Submit a request!</p>
 
-.items{
-    display: flex;
-    justify-content: center;
-    gap: 40px;
-    margin-top: 40px;
-}
-
-.item{
-    border: 1px solid gray;
-    padding: 15px;
-    width: 200px;
-}
-
-.item img{
-    width:150px;
-}
-
-
-</style>
-
-    </head>
-
-    <body>
-
-    <label for="search">Search Lost Items:</label>
-
-        <input type="text" id="search" name="search" placeholder="Enter item name">
-
-        <button type="submit">Search</button>
-
-</form>
-
-<h1>Place Holder: Lost & Found Items</h1>
-<p>Items reported by students</p>
-
-<div class="items">
-
-    <div class="item">
-        <img src="phone.png" alt="Lost phone">
-        <h3>Black Phone</h3>
-        <p>Reported by: Alex</p>
+      <div class="filter-bar">
+        <input type="text" id="searchInput" placeholder="Search by name or description..." />
+        <select id="categoryFilter">
+          <option value="">All Categories</option>
+          <option value="electronics">Electronics</option>
+          <option value="clothing">Clothing &amp; Accessories</option>
+          <option value="bags">Bags &amp; Backpacks</option>
+          <option value="keys">Keys &amp; ID Cards</option>
+          <option value="books">Books &amp; Notes</option>
+          <option value="jewelry">Jewelry</option>
+          <option value="sports">Sports Equipment</option>
+          <option value="other">Other</option>
+        </select>
+        <select id="statusFilter">
+          <option value="">All Statuses</option>
+          <option value="FOUND">Available</option>
+          <option value="CLAIMED">Claimed</option>
+          <option value="RETURNED">Returned</option>
+        </select>
+        <button class="btn btn-secondary btn-sm" onclick="loadItems()">Search</button>
+      </div>
     </div>
 
-<div class="item">
-    <img src="keys.png" alt="Lost keys">
-    <h3>Car Keys</h3>
-    <p>Reported by: Maria</p>
-</div>
+    <div id="itemGrid" class="item-grid" style="padding: 0 16px 40px;">
+      <p id="loadingMsg" style="color: var(--color-text-muted);">Loading items...</p>
+    </div>
 
-<div class="item">
-    <img src="backpack.png" alt="Lost backpack">
-    <h3>Blue Backpack</h3>
-    <p>Reported by: Jordan</p>
-</div>
+  </div>
 
-</div>
-
+  <script src="../js/item-browser.js"></script>
 </body>
-
 </html>
