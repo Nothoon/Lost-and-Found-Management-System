@@ -6,6 +6,27 @@
   <title>Lost & Found - Employee Login</title>
   <link rel="stylesheet" href="../css/employee-login.css">
   <style>
+    :focus {
+      outline: 3px solid rgba(88, 144, 255, 0.9);
+      outline-offset: 2px;
+    }
+
+    .message {
+      color: #b00020;
+      margin-top: 0.5rem;
+    }
+
+    .password-row {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    #togglePasswordBtn {
+      white-space: nowrap;
+      padding: 0.35rem 0.6rem;
+      cursor: pointer;
+    }
   </style>
 </head>
 
@@ -71,75 +92,109 @@
   </div>
 
   <script>
-    function isEmailBasicValid(emailText) {
-      return emailText.includes("@") && emailText.includes(".");
-    }
+    document.addEventListener('DOMContentLoaded', function () {
+      const loginForm = document.getElementById('loginForm');
+      const forgotForm = document.getElementById('forgotForm');
+      const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+      const toggleForgotBtn = document.getElementById('toggleForgotBtn');
+      const forgotSection = document.getElementById('forgotPasswordSection');
+      const loginMessage = document.getElementById('loginMessage');
+      const forgotMessage = document.getElementById('forgotMessage');
 
-    function togglePasswordVisibility() {
-      const passwordInput = document.getElementById("passwordLogin");
-      const btn = document.getElementById("togglePasswordBtn");
+      // Accessible show/hide password
+      togglePasswordBtn.addEventListener('click', function () {
+        const pwd = document.getElementById('passwordLogin');
+        const isHidden = pwd.type === 'password';
+        pwd.type = isHidden ? 'text' : 'password';
+        togglePasswordBtn.textContent = isHidden ? 'Hide' : 'Show';
+        togglePasswordBtn.setAttribute('aria-pressed', String(isHidden));
+      });
 
-      if (passwordInput.type === "password") {
-        passwordInput.type = "text";
-        btn.textContent = "Hide";
-      } else {
-        passwordInput.type = "password";
-        btn.textContent = "Show";
-      }
-    }
-
-    // toggle forgot password section show/hide
-    function toggleForgotPassword() {
-      const section = document.getElementById("forgotPasswordSection");
-      const forgotMsg = document.getElementById("forgotMessage");
-
-      if (section.style.display === "none" || section.style.display === "") {
-        section.style.display = "block";
-      } else {
-        section.style.display = "none";
-        if (forgotMsg) {
-          forgotMsg.textContent = "";
+      // Toggle forgot password section
+      toggleForgotBtn.addEventListener('click', function () {
+        const isHidden = forgotSection.style.display === 'none' || forgotSection.style.display === '';
+        forgotSection.style.display = isHidden ? 'block' : 'none';
+        if (!isHidden) {
+          // hiding -> clear messages
+          if (forgotMessage) forgotMessage.textContent = '';
         }
-      }
-    }
+      });
 
-    //login submit
-    document.getElementById("loginForm").addEventListener("submit", function (event) {
-      event.preventDefault(); // stop page refresh
+      // Clear messages when user starts typing
+      ['emailLogin', 'passwordLogin', 'emailReset'].forEach(function (id) {
+        const el = document.getElementById(id);
+        if (el) {
+          el.addEventListener('input', function () {
+            if (loginMessage) loginMessage.textContent = '';
+            if (forgotMessage) forgotMessage.textContent = '';
+          });
+        }
+      });
 
-      const email = document.getElementById("emailLogin").value.trim();
-      const password = document.getElementById("passwordLogin").value;
-      const messageEl = document.getElementById("loginMessage");
+      // Login submit handler
+      loginForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
 
-      //validate email format
-      if (!isEmailBasicValid(email)) {
-        messageEl.textContent = 'Please enter a valid email address (include "@" and ".").';
-        return;
-      }
+        // Use browser validation first
+        if (!loginForm.checkValidity()) {
+          loginForm.reportValidity();
+          return;
+        }
 
-      //check test credentials
-      if (email === "test@gmail.com" && password === "TEST") {
-        window.location.href = "employee-dashboard.html";
-      } else {
-        messageEl.textContent = "Incorrect email address or password.";
-      }
+        const email = document.getElementById('emailLogin').value.trim();
+        const password = document.getElementById('passwordLogin').value;
+        const remember = document.getElementById('rememberMe').checked;
 
-    });
+        // Demo shortcut for local prototype tests
+        if (email === 'test@gmail.com' && password === 'TEST') {
+          window.location.href = 'employee-dashboard.html';
+          return;
+        }
 
-    //forgot password submit
-    document.getElementById("forgotForm").addEventListener("submit", function (event) {
-      event.preventDefault(); // stop page refresh
+        // Try to POST credentials to the server as JSON. If the server isn't implemented,
+        // fallback to a friendly message. We don't expose which field failed.
+        try {
+          const res = await fetch('/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password, remember })
+          });
 
-      const email = document.getElementById("emailReset").value.trim();
-      const msg = document.getElementById("forgotMessage");
+          if (res.ok) {
+            // assume server sets a session cookie and redirects to dashboard
+            window.location.href = 'employee-dashboard.html';
+            return;
+          } else if (res.status === 401) {
+            loginMessage.textContent = 'Incorrect email address or password.';
+            document.getElementById('passwordLogin').value = ''; // clear sensitive field
+            document.getElementById('passwordLogin').focus();
+            return;
+          } else {
+            loginMessage.textContent = 'Unable to sign in right now. Please try again later.';
+            return;
+          }
+        } catch (err) {
+          // Network or other error — fall back to generic message
+          loginMessage.textContent = 'Incorrect email address or password.';
+          document.getElementById('passwordLogin').value = '';
+          document.getElementById('passwordLogin').focus();
+        }
+      });
 
-      // validate email format
-      if (!isEmailBasicValid(email)) {
-        msg.textContent = 'Please enter a valid email address (include "@" and ".").';
-        return;
-      }
+      // Forgot password submit
+      forgotForm.addEventListener('submit', function (e) {
+        e.preventDefault();
 
-      msg.textContent = "If this email is on file, password reset instructions will be sent.";
+        if (!forgotForm.checkValidity()) {
+          forgotForm.reportValidity();
+          return;
+        }
+
+        const email = document.getElementById('emailReset').value.trim();
+
+        // In a real app we'd POST to a reset endpoint. For this prototype show a generic message.
+        forgotMessage.textContent = 'If this email is on file, password reset instructions will be sent.';
+      });
     });
   </script>
 </body>
