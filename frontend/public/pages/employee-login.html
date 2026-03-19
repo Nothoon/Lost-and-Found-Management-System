@@ -36,7 +36,6 @@
 
     <p>Please sign in with your employee credentials to access the Lost & Found system.</p>
 
-    <!-- Login Form -->
     <form id="loginForm">
       <label for="emailLogin" class="add-margin">Email Address:</label>
       <input type="text" id="emailLogin" name="emailLogin" placeholder="name@company.com" required />
@@ -44,9 +43,7 @@
       <label for="passwordLogin" class="add-margin">Password:</label>
       <div class="password-row">
         <input type="password" id="passwordLogin" name="passwordLogin" placeholder="Enter password" required />
-        <button type="button" id="togglePasswordBtn" onclick="togglePasswordVisibility()">
-          Show
-        </button>
+        <button type="button" id="togglePasswordBtn">Show</button>
       </div>
 
       <div class="checkbox-row">
@@ -60,14 +57,14 @@
     </form>
 
     <div class="actions">
-      <button type="button" onclick="toggleForgotPassword()">Reset my password</button>
+      <button type="button" id="toggleForgotBtn">Reset my password</button>
     </div>
 
     <br>
 
     <div id="forgotPasswordSection" style="display:none;">
       <h2>Password Reset</h2>
-      <p>Enter your email address and we’ll send password reset instructions (demo only).</p>
+      <p>Enter your email address and we'll send password reset instructions (demo only).</p>
 
       <form id="forgotForm">
         <label for="emailReset" class="add-margin">Email Address:</label>
@@ -80,7 +77,6 @@
     </div>
 
     <hr>
-    <!-- testing -->
     <details>
       <summary>FOR TESTING</summary>
       <p>
@@ -101,7 +97,6 @@
       const loginMessage = document.getElementById('loginMessage');
       const forgotMessage = document.getElementById('forgotMessage');
 
-      // Accessible show/hide password
       togglePasswordBtn.addEventListener('click', function () {
         const pwd = document.getElementById('passwordLogin');
         const isHidden = pwd.type === 'password';
@@ -110,17 +105,14 @@
         togglePasswordBtn.setAttribute('aria-pressed', String(isHidden));
       });
 
-      // Toggle forgot password section
       toggleForgotBtn.addEventListener('click', function () {
         const isHidden = forgotSection.style.display === 'none' || forgotSection.style.display === '';
         forgotSection.style.display = isHidden ? 'block' : 'none';
         if (!isHidden) {
-          // hiding -> clear messages
           if (forgotMessage) forgotMessage.textContent = '';
         }
       });
 
-      // Clear messages when user starts typing
       ['emailLogin', 'passwordLogin', 'emailReset'].forEach(function (id) {
         const el = document.getElementById(id);
         if (el) {
@@ -131,11 +123,9 @@
         }
       });
 
-      // Login submit handler
       loginForm.addEventListener('submit', async function (e) {
         e.preventDefault();
 
-        // Use browser validation first
         if (!loginForm.checkValidity()) {
           loginForm.reportValidity();
           return;
@@ -147,12 +137,11 @@
 
         // Demo shortcut for local prototype tests
         if (email === 'test@gmail.com' && password === 'TEST') {
+          console.log('test login');
           window.location.href = 'employee-dashboard.html';
           return;
         }
 
-        // Try to POST credentials to the server as JSON. If the server isn't implemented,
-        // fallback to a friendly message. We don't expose which field failed.
         try {
           const res = await fetch('/login', {
             method: 'POST',
@@ -161,12 +150,11 @@
           });
 
           if (res.ok) {
-            // assume server sets a session cookie and redirects to dashboard
             window.location.href = 'employee-dashboard.html';
             return;
           } else if (res.status === 401) {
             loginMessage.textContent = 'Incorrect email address or password.';
-            document.getElementById('passwordLogin').value = ''; // clear sensitive field
+            document.getElementById('passwordLogin').value = '';
             document.getElementById('passwordLogin').focus();
             return;
           } else {
@@ -174,14 +162,12 @@
             return;
           }
         } catch (err) {
-          // Network or other error — fall back to generic message
           loginMessage.textContent = 'Incorrect email address or password.';
           document.getElementById('passwordLogin').value = '';
           document.getElementById('passwordLogin').focus();
         }
       });
 
-      // Forgot password submit
       forgotForm.addEventListener('submit', function (e) {
         e.preventDefault();
 
@@ -192,7 +178,6 @@
 
         const email = document.getElementById('emailReset').value.trim();
 
-        // In a real app we'd POST to a reset endpoint. For this prototype show a generic message.
         forgotMessage.textContent = 'If this email is on file, password reset instructions will be sent.';
       });
     });
