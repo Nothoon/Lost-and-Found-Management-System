@@ -13,7 +13,6 @@
       width: 100%;
       max-width: 450px;
 
-      /* Key change: let the box grow with content */
       height: auto;
       max-height: none;
       box-sizing: border-box;
@@ -24,7 +23,7 @@
       background-color: dimgrey;
       justify-content: flex-start;
       align-items: center;
-      min-height: 100vh; /* better when content grows */
+      min-height: 100vh;
       padding-top: 20px;
       box-sizing: border-box;
     }
@@ -38,7 +37,6 @@
       margin-top: 20px;
     }
 
-    /* Small helper layout for password + toggle button */
     .password-row {
       display: flex;
       gap: 10px;
@@ -46,7 +44,7 @@
     }
     .password-row input {
       flex: 1;
-      margin-bottom: 10px; /* keep consistent spacing */
+      margin-bottom: 10px;
     }
     .password-row button {
       margin-bottom: 10px;
