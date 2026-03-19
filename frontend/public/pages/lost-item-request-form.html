@@ -4,112 +4,92 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lost & Found — Report Lost Item</title>
-  <link rel="stylesheet" href="../css/global.css">
-  <link rel="stylesheet" href="../css/forms.css">
 </head>
 <body>
 
-  <header class="site-header">
-    <span class="logo">University Lost &amp; Found</span>
-    <nav>
-      <a href="../index.html">← Back to Home</a>
-    </nav>
-  </header>
+  <h1>Report a Lost Item</h1>
+  <p>Fill out the form below and we'll notify you if your item is turned in.</p>
+  <a href="../index.html">← Back to Home</a>
 
-  <div class="page-wrapper">
-    <div class="card">
-      <h1>Report a Lost Item</h1>
-      <p>Fill out the form below and we'll notify you if your item is turned in.</p>
+  <hr>
 
-      <form id="lostItemForm" enctype="multipart/form-data">
+  <form id="lostItemForm">
 
-        <div class="form-group">
-          <label for="name">Full Name</label>
-          <input type="text" id="name" name="name" placeholder="Your full name" required />
-        </div>
+    <label for="name">Full Name *</label><br>
+    <input type="text" id="name" placeholder="Your full name" required /><br><br>
 
-        <div class="form-group">
-          <label for="email">Email Address</label>
-          <input type="email" id="email" name="email" placeholder="name@university.edu" required />
-        </div>
+    <label for="email">Email Address *</label><br>
+    <input type="email" id="email" placeholder="name@university.edu" required /><br><br>
 
-        <div class="form-group">
-          <label for="phone">Phone Number (optional)</label>
-          <input type="tel" id="phone" name="phone" placeholder="(555) 000-0000" />
-        </div>
+    <label for="phone">Phone Number (optional)</label><br>
+    <input type="tel" id="phone" placeholder="(555) 000-0000" /><br><br>
 
-        <div class="form-group">
-          <label>Would you like notifications?</label>
-          <div class="radio-group">
-            <label>
-              <input type="radio" name="notifyEmail" value="email" checked />
-              Email only
-            </label>
-            <label>
-              <input type="radio" name="notifyEmail" value="sms" />
-              SMS only
-            </label>
-            <label>
-              <input type="radio" name="notifyEmail" value="both" />
-              Both
-            </label>
-            <label>
-              <input type="radio" name="notifyEmail" value="none" />
-              None
-            </label>
-          </div>
-        </div>
+    <label>Would you like notifications?</label><br>
+    <input type="radio" name="notifyEmail" value="email" checked /> Email only &nbsp;
+    <input type="radio" name="notifyEmail" value="sms" /> SMS only &nbsp;
+    <input type="radio" name="notifyEmail" value="both" /> Both &nbsp;
+    <input type="radio" name="notifyEmail" value="none" /> None<br><br>
 
-        <div class="form-group">
-          <label for="itemName">Item Name</label>
-          <input type="text" id="itemName" name="itemName" placeholder="e.g. Black Backpack" required />
-        </div>
+    <label for="itemName">Item Name *</label><br>
+    <input type="text" id="itemName" placeholder="e.g. Black Backpack" required /><br><br>
 
-        <div class="form-group">
-          <label for="category">Category</label>
-          <select id="category" name="category" required>
-            <option value="" disabled selected>Select a category</option>
-            <option value="electronics">Electronics</option>
-            <option value="clothing">Clothing &amp; Accessories</option>
-            <option value="bags">Bags &amp; Backpacks</option>
-            <option value="keys">Keys &amp; ID Cards</option>
-            <option value="books">Books &amp; Notes</option>
-            <option value="jewelry">Jewelry</option>
-            <option value="sports">Sports Equipment</option>
-            <option value="other">Other</option>
-          </select>
-        </div>
+    <label for="category">Category *</label><br>
+    <select id="category" required>
+      <option value="" disabled selected>Select a category</option>
+      <option value="electronics">Electronics</option>
+      <option value="clothing">Clothing &amp; Accessories</option>
+      <option value="bags">Bags &amp; Backpacks</option>
+      <option value="keys">Keys &amp; ID Cards</option>
+      <option value="books">Books &amp; Notes</option>
+      <option value="jewelry">Jewelry</option>
+      <option value="sports">Sports Equipment</option>
+      <option value="other">Other</option>
+    </select><br><br>
 
-        <div class="form-group">
-          <label for="description">Item Description</label>
-          <textarea id="description" name="description"
-            placeholder="Describe your item in detail: color, brand, size, any identifying marks..."
-            rows="5" required></textarea>
-        </div>
+    <label for="description">Item Description *</label><br>
+    <textarea id="description" placeholder="Color, brand, size, any identifying marks..." rows="5" cols="50" required></textarea><br><br>
 
-        <div class="form-group">
-          <label for="dateLost">Date Lost</label>
-          <input type="date" id="dateLost" name="dateLost" required />
-        </div>
+    <label for="dateLost">Date Lost *</label><br>
+    <input type="date" id="dateLost" required /><br><br>
 
-        <div class="form-group">
-          <label for="locationLost">Location Lost (if known)</label>
-          <input type="text" id="locationLost" name="locationLost"
-            placeholder="e.g. Library 2nd floor, Gym locker room" />
-        </div>
+    <label for="locationLost">Location Lost (if known)</label><br>
+    <input type="text" id="locationLost" placeholder="e.g. Library 2nd floor, Gym locker room" /><br><br>
 
-        <div class="form-group">
-          <label for="image">Upload a Photo (optional)</label>
-          <input type="file" id="image" name="image" accept="image/*" />
-        </div>
+    <label for="image">Upload a Photo (optional)</label><br>
+    <input type="file" id="image" accept="image/*" /><br><br>
 
-        <button type="submit" class="btn btn-primary btn-full">Submit Report</button>
+    <button type="submit">Submit Report</button>
 
-        <div id="formMessage"></div>
-      </form>
-    </div>
-  </div>
+    <p id="formMessage"></p>
+  </form>
 
-  <script src="../js/request-form.js"></script>
+  <script>
+    document.getElementById("lostItemForm").addEventListener("submit", function (event) {
+      event.preventDefault();
+
+      const formData = {
+        id:           Date.now(),
+        name:         document.getElementById("name").value.trim(),
+        email:        document.getElementById("email").value.trim(),
+        phone:        document.getElementById("phone").value.trim(),
+        notify:       document.querySelector('input[name="notifyEmail"]:checked')?.value || "none",
+        itemName:     document.getElementById("itemName").value.trim(),
+        category:     document.getElementById("category").value,
+        description:  document.getElementById("description").value.trim(),
+        dateLost:     document.getElementById("dateLost").value,
+        locationLost: document.getElementById("locationLost").value.trim(),
+        status:       "new",
+        submittedAt:  new Date().toISOString(),
+      };
+
+      // Save to localStorage
+      const existing = JSON.parse(localStorage.getItem("lostRequests") || "[]");
+      existing.unshift(formData);
+      localStorage.setItem("lostRequests", JSON.stringify(existing));
+
+      document.getElementById("formMessage").textContent = "Your report has been submitted! We will notify you if your item is found.";
+      document.getElementById("lostItemForm").reset();
+    });
+  </script>
 </body>
 </html>

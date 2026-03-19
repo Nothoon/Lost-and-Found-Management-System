@@ -1,11 +1,128 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lost & Found — Employee Dashboard</title>
 </head>
 <body>
-    
+
+  <h1>Employee Dashboard</h1>
+  <p>Lost item requests submitted by students.</p>
+  <a href="employee-login.html">Log Out</a>
+
+  <hr>
+
+  <label for="searchInput">Search:</label>
+  <input type="text" id="searchInput" placeholder="Name, item, or email..." oninput="renderRequests()" />
+
+  &nbsp;
+
+  <label for="statusFilter">Status:</label>
+  <select id="statusFilter" onchange="renderRequests()">
+    <option value="">All</option>
+    <option value="new">New</option>
+    <option value="matched">Matched</option>
+    <option value="notified">Notified</option>
+    <option value="closed">Closed</option>
+  </select>
+
+  &nbsp;
+
+  <button onclick="clearAll()">Clear All Requests</button>
+
+  <hr>
+
+  <table border="1" cellpadding="6" cellspacing="0">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Item</th>
+        <th>Category</th>
+        <th>Description</th>
+        <th>Date Lost</th>
+        <th>Location</th>
+        <th>Notify Via</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="requestsBody">
+      <tr><td colspan="11">No requests yet.</td></tr>
+    </tbody>
+  </table>
+
+  <script>
+    let allRequests = [];
+
+    function loadRequests() {
+      allRequests = JSON.parse(localStorage.getItem("lostRequests") || "[]");
+      renderRequests();
+    }
+
+    function saveLocally() {
+      localStorage.setItem("lostRequests", JSON.stringify(allRequests));
+    }
+
+    function renderRequests() {
+      const search  = document.getElementById("searchInput").value.toLowerCase();
+      const statusF = document.getElementById("statusFilter").value;
+      const tbody   = document.getElementById("requestsBody");
+
+      const filtered = allRequests.filter(r => {
+        const matchSearch = !search ||
+          r.name?.toLowerCase().includes(search) ||
+          r.itemName?.toLowerCase().includes(search) ||
+          r.email?.toLowerCase().includes(search);
+        const matchStatus = !statusF || r.status === statusF;
+        return matchSearch && matchStatus;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='11'>No requests found.</td></tr>";
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(r => `
+        <tr>
+          <td>${r.name}</td>
+          <td>${r.email}</td>
+          <td>${r.phone || "—"}</td>
+          <td>${r.itemName}</td>
+          <td>${r.category || "—"}</td>
+          <td>${r.description}</td>
+          <td>${r.dateLost || "—"}</td>
+          <td>${r.locationLost || "—"}</td>
+          <td>${r.notify || "—"}</td>
+          <td>${r.status}</td>
+          <td>
+            ${r.status === "new"     ? `<button onclick="updateStatus(${r.id}, 'matched')">Mark Matched</button>` : ""}
+            ${r.status === "matched" ? `<button onclick="updateStatus(${r.id}, 'notified')">Mark Notified</button>` : ""}
+            ${r.status !== "closed"  ? `<button onclick="updateStatus(${r.id}, 'closed')">Close</button>` : ""}
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    function updateStatus(id, newStatus) {
+      const req = allRequests.find(r => r.id === id);
+      if (!req) return;
+      req.status = newStatus;
+      saveLocally();
+      renderRequests();
+    }
+
+    function clearAll() {
+      if (!confirm("Clear all requests? This cannot be undone.")) return;
+      localStorage.removeItem("lostRequests");
+      allRequests = [];
+      renderRequests();
+    }
+
+    // Load on page open
+    loadRequests();
+  </script>
 </body>
 </html>
