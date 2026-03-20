@@ -273,12 +273,7 @@
         allItems = [...fallbackItems, ...localItems];
       }
 
-      // Persist the currently-visible found items so the employee dashboard can read them
-      try {
-        localStorage.setItem('foundItems', JSON.stringify(allItems));
-      } catch (e) {
-        console.warn('Could not persist foundItems to localStorage', e);
-      }
+      
 
       renderItems(getFilteredItems());
     }
