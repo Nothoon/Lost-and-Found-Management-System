@@ -56,10 +56,12 @@
   </table>
 
   <script>
-    let allRequests = [];
+  let allRequests = [];
+  let foundItems = [];
 
     function loadRequests() {
       allRequests = JSON.parse(localStorage.getItem("lostRequests") || "[]");
+      foundItems = JSON.parse(localStorage.getItem("foundItems") || "[]");
       renderRequests();
     }
 
@@ -72,11 +74,29 @@
       const statusF = document.getElementById("statusFilter").value;
       const tbody   = document.getElementById("requestsBody");
 
-      const filtered = allRequests.filter(r => {
+      // Convert foundItems into request-like rows (prefix ids to avoid collisions)
+      const foundConverted = foundItems.map(fi => ({
+        id: `found-${fi.id}`,
+        name: '',
+        email: '',
+        phone: '',
+        itemName: fi.name || fi.itemName || 'Unnamed Item',
+        category: fi.category || '',
+        description: fi.description || '',
+        dateLost: fi.date_found || fi.dateLost || '',
+        locationLost: fi.location_found || fi.locationLost || '',
+        notify: '',
+        status: fi.status || 'FOUND',
+        image_url: fi.image_url || ''
+      }));
+
+      const combined = [...allRequests, ...foundConverted];
+
+      const filtered = combined.filter(r => {
         const matchSearch = !search ||
-          r.name?.toLowerCase().includes(search) ||
-          r.itemName?.toLowerCase().includes(search) ||
-          r.email?.toLowerCase().includes(search);
+          (r.name && r.name.toLowerCase().includes(search)) ||
+          (r.itemName && r.itemName.toLowerCase().includes(search)) ||
+          (r.email && r.email.toLowerCase().includes(search));
         const matchStatus = !statusF || r.status === statusF;
         return matchSearch && matchStatus;
       });
@@ -86,25 +106,33 @@
         return;
       }
 
-      tbody.innerHTML = filtered.map(r => `
-        <tr>
-          <td>${r.name}</td>
-          <td>${r.email}</td>
-          <td>${r.phone || "—"}</td>
-          <td>${r.itemName}</td>
-          <td>${r.category || "—"}</td>
-          <td>${r.description}</td>
-          <td>${r.dateLost || "—"}</td>
-          <td>${r.locationLost || "—"}</td>
-          <td>${r.notify || "—"}</td>
-          <td>${r.status}</td>
-          <td>
-            ${r.status === "new"     ? `<button onclick="updateStatus(${r.id}, 'matched')">Mark Matched</button>` : ""}
-            ${r.status === "matched" ? `<button onclick="updateStatus(${r.id}, 'notified')">Mark Notified</button>` : ""}
-            ${r.status !== "closed"  ? `<button onclick="updateStatus(${r.id}, 'closed')">Close</button>` : ""}
-          </td>
-        </tr>
-      `).join("");
+      tbody.innerHTML = filtered.map(r => {
+        const isFoundItem = String(r.id).startsWith('found-');
+        const actions = isFoundItem
+          ? `${r.image_url ? `<button onclick="toggleImageInTable('img-${r.id}')">Expand Image</button>` : ''}`
+          : `${r.status === 'new'     ? `<button onclick="updateStatus(${r.id}, 'matched')">Mark Matched</button>` : ''}
+             ${r.status === 'matched' ? `<button onclick="updateStatus(${r.id}, 'notified')">Mark Notified</button>` : ''}
+             ${r.status !== 'closed'  ? `<button onclick="updateStatus(${r.id}, 'closed')">Close</button>` : ''}`;
+
+        return `
+          <tr>
+            <td>${r.name || '—'}</td>
+            <td>${r.email || '—'}</td>
+            <td>${r.phone || '—'}</td>
+            <td>${r.itemName}</td>
+            <td>${r.category || '—'}</td>
+            <td>${r.description}</td>
+            <td>${r.dateLost || '—'}</td>
+            <td>${r.locationLost || '—'}</td>
+            <td>${r.notify || '—'}</td>
+            <td>${r.status}</td>
+            <td>
+              ${actions}
+            </td>
+          </tr>
+          ${r.image_url ? `<tr id="img-${r.id}" style="display:none;"><td colspan="11" style="text-align:center;"><img src="${r.image_url}" alt="${r.itemName}" style="max-width:300px; max-height:300px; object-fit:contain;" /></td></tr>` : ''}
+        `;
+      }).join('');
     }
 
     function updateStatus(id, newStatus) {
@@ -120,6 +148,12 @@
       localStorage.removeItem("lostRequests");
       allRequests = [];
       renderRequests();
+    }
+
+    function toggleImageInTable(rowId) {
+      const el = document.getElementById(rowId);
+      if (!el) return;
+      el.style.display = el.style.display === 'none' ? '' : 'none';
     }
 
     // Load on page open
