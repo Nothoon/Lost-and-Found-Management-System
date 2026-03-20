@@ -224,6 +224,18 @@
         <p id="loadingMsg" style="color: var(--color-text-muted);">Loading items...</p>
       `;
 
+      const localRequests = JSON.parse(localStorage.getItem("lostRequests") || "[]");
+      const localItems = localRequests.map(r => ({
+        id:             r.id,
+        name:           r.itemName,
+        description:    r.description,
+        category:       r.category,
+        status:         "FOUND",
+        location_found: r.locationLost || "Unknown location",
+        date_found:     r.dateLost,
+        image_url:      ""
+      }));
+
       try {
         const response = await fetch(API_URL);
 
@@ -237,10 +249,10 @@
           throw new Error("Invalid data");
         }
 
-        allItems = data;
+        allItems = [...data, ...localItems];
       } catch (error) {
         console.warn("Using fallback data:", error);
-        allItems = fallbackItems;
+        allItems = [...fallbackItems, ...localItems];
       }
 
       renderItems(getFilteredItems());
