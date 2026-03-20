@@ -272,8 +272,13 @@
         console.warn("Using fallback data:", error);
         allItems = [...fallbackItems, ...localItems];
       }
-
-      
+      // Persist the API-provided found items under a separate key so employee uploads (foundItems)
+      // are not overwritten by the browser/API list. This keeps employee uploads and API data separate.
+      try {
+        localStorage.setItem('apiFoundItems', JSON.stringify(allItems));
+      } catch (e) {
+        console.warn('Could not persist apiFoundItems to localStorage', e);
+      }
 
       renderItems(getFilteredItems());
     }

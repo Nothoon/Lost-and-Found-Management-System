@@ -8,91 +8,114 @@
 <body>
 
   <h1>Employee Dashboard</h1>
-  <p>Lost item requests submitted by students.</p>
+  <p>Manage student reports (left) and employee-uploaded items (right).</p>
   <a href="employee-login.html">Log Out</a>
   <a href="browser-upload.html">Browser Upload</a>
 
   <hr>
 
-  <label for="searchInput">Search:</label>
-  <input type="text" id="searchInput" placeholder="Name, item, or email..." oninput="renderRequests()" />
+  <div style="display:flex; gap:16px; align-items:flex-start;">
+    <!-- Left: Student Requests -->
+    <div style="flex:1; min-width:320px;">
+      <h2>Student Requests</h2>
+      <label for="searchInput">Search:</label>
+      <input type="text" id="searchInput" placeholder="Name, item, or email..." oninput="renderAll()" />
 
-  &nbsp;
+      &nbsp;
 
-  <label for="statusFilter">Status:</label>
-  <select id="statusFilter" onchange="renderRequests()">
-    <option value="">All</option>
-    <option value="new">New</option>
-    <option value="matched">Matched</option>
-    <option value="notified">Notified</option>
-    <option value="closed">Closed</option>
-  </select>
+      <label for="statusFilter">Status:</label>
+      <select id="statusFilter" onchange="renderAll()">
+        <option value="">All</option>
+        <option value="new">New</option>
+        <option value="matched">Matched</option>
+        <option value="notified">Notified</option>
+        <option value="closed">Closed</option>
+      </select>
 
-  &nbsp;
+      &nbsp;
 
-  <button onclick="clearAll()">Clear All Requests</button>
+      <button onclick="clearAllRequests()">Clear All Requests</button>
 
-  <hr>
+      <div style="max-height:60vh; overflow:auto; border:1px solid #e1e1e1; margin-top:8px;">
+        <table border="1" cellpadding="6" cellspacing="0" style="width:100%; border-collapse:collapse;">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Item</th>
+              <th>Category</th>
+              <th>Description</th>
+              <th>Date Lost</th>
+              <th>Location</th>
+              <th>Notify Via</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="requestsBody">
+            <tr><td colspan="11">No requests yet.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-  <table border="1" cellpadding="6" cellspacing="0">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Email</th>
-        <th>Phone</th>
-        <th>Item</th>
-        <th>Category</th>
-        <th>Description</th>
-        <th>Date Lost</th>
-        <th>Location</th>
-        <th>Notify Via</th>
-        <th>Status</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody id="requestsBody">
-      <tr><td colspan="11">No requests yet.</td></tr>
-    </tbody>
-  </table>
+    <!-- Right: Employee Uploads -->
+    <div style="flex:1; min-width:320px;">
+      <h2>Employee Uploaded Items</h2>
+      <button onclick="clearAllUploads()">Clear Uploaded Items</button>
+      <div style="max-height:60vh; overflow:auto; border:1px solid #e1e1e1; margin-top:8px;">
+        <table border="1" cellpadding="6" cellspacing="0" style="width:100%; border-collapse:collapse;">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Category</th>
+              <th>Source</th>
+              <th>Description</th>
+              <th>Date</th>
+              <th>Location</th>
+              <th>Status</th>
+              <th>Image</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="uploadsBody">
+            <tr><td colspan="9">No uploaded items.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
   <script>
   let allRequests = [];
-  let foundItems = [];
+  let uploadedItems = [];
+  let apiItems = [];
 
     function loadRequests() {
       allRequests = JSON.parse(localStorage.getItem("lostRequests") || "[]");
-      foundItems = JSON.parse(localStorage.getItem("foundItems") || "[]");
-      renderRequests();
+      // Employee uploads are stored under 'foundItems' by the browser upload page
+      uploadedItems = JSON.parse(localStorage.getItem("foundItems") || "[]");
+      // API-provided found items are stored under 'apiFoundItems' (separate to avoid overwrite)
+      apiItems = JSON.parse(localStorage.getItem("apiFoundItems") || "[]");
+      renderAll();
     }
 
-    function saveLocally() {
+    function saveRequests() {
       localStorage.setItem("lostRequests", JSON.stringify(allRequests));
     }
 
-    function renderRequests() {
+    function renderAll() {
+      renderRequestsTable();
+      renderUploadsTable();
+    }
+
+    function renderRequestsTable() {
       const search  = document.getElementById("searchInput").value.toLowerCase();
       const statusF = document.getElementById("statusFilter").value;
       const tbody   = document.getElementById("requestsBody");
 
-      // Convert foundItems into request-like rows (prefix ids to avoid collisions)
-      const foundConverted = foundItems.map(fi => ({
-        id: `found-${fi.id}`,
-        name: '',
-        email: '',
-        phone: '',
-        itemName: fi.name || fi.itemName || 'Unnamed Item',
-        category: fi.category || '',
-        description: fi.description || '',
-        dateLost: fi.date_found || fi.dateLost || '',
-        locationLost: fi.location_found || fi.locationLost || '',
-        notify: '',
-        status: fi.status || 'FOUND',
-        image_url: fi.image_url || ''
-      }));
-
-      const combined = [...allRequests, ...foundConverted];
-
-      const filtered = combined.filter(r => {
+      const filtered = allRequests.filter(r => {
         const matchSearch = !search ||
           (r.name && r.name.toLowerCase().includes(search)) ||
           (r.itemName && r.itemName.toLowerCase().includes(search)) ||
@@ -106,54 +129,91 @@
         return;
       }
 
-      tbody.innerHTML = filtered.map(r => {
-        const isFoundItem = String(r.id).startsWith('found-');
-        const actions = isFoundItem
-          ? `${r.image_url ? `<button onclick="toggleImageInTable('img-${r.id}')">Expand Image</button>` : ''}`
-          : `${r.status === 'new'     ? `<button onclick="updateStatus(${r.id}, 'matched')">Mark Matched</button>` : ''}
-             ${r.status === 'matched' ? `<button onclick="updateStatus(${r.id}, 'notified')">Mark Notified</button>` : ''}
-             ${r.status !== 'closed'  ? `<button onclick="updateStatus(${r.id}, 'closed')">Close</button>` : ''}`;
+      tbody.innerHTML = filtered.map(r => `
+        <tr>
+          <td>${r.name}</td>
+          <td>${r.email}</td>
+          <td>${r.phone || '—'}</td>
+          <td>${r.itemName}</td>
+          <td>${r.category || '—'}</td>
+          <td>${r.description}</td>
+          <td>${r.dateLost || '—'}</td>
+          <td>${r.locationLost || '—'}</td>
+          <td>${r.notify || '—'}</td>
+          <td>${r.status}</td>
+          <td>
+            ${r.status === 'new'     ? `<button onclick="updateStatus(${r.id}, 'matched')">Mark Matched</button>` : ''}
+            ${r.status === 'matched' ? `<button onclick="updateStatus(${r.id}, 'notified')">Mark Notified</button>` : ''}
+            ${r.status !== 'closed'  ? `<button onclick="updateStatus(${r.id}, 'closed')">Close</button>` : ''}
+          </td>
+        </tr>
+      `).join('');
+    }
 
-        return `
-          <tr>
-            <td>${r.name || '—'}</td>
-            <td>${r.email || '—'}</td>
-            <td>${r.phone || '—'}</td>
-            <td>${r.itemName}</td>
-            <td>${r.category || '—'}</td>
-            <td>${r.description}</td>
-            <td>${r.dateLost || '—'}</td>
-            <td>${r.locationLost || '—'}</td>
-            <td>${r.notify || '—'}</td>
-            <td>${r.status}</td>
-            <td>
-              ${actions}
-            </td>
-          </tr>
-          ${r.image_url ? `<tr id="img-${r.id}" style="display:none;"><td colspan="11" style="text-align:center;"><img src="${r.image_url}" alt="${r.itemName}" style="max-width:300px; max-height:300px; object-fit:contain;" /></td></tr>` : ''}
-        `;
-      }).join('');
+    function renderUploadsTable() {
+      const tbody = document.getElementById('uploadsBody');
+      if (!uploadedItems || uploadedItems.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8">No uploaded items.</td></tr>';
+        return;
+      }
+
+      // Combine uploaded items (by employees) and API-provided items, but keep actions limited to uploaded items
+      const displayItems = [
+        ...(uploadedItems || []).map(u => ({...u, _source: 'uploaded'})),
+        ...(apiItems || []).map(a => ({...a, _source: 'api'}))
+      ];
+
+      tbody.innerHTML = displayItems.map(u => `
+        <tr>
+          <td>${u.itemName || u.name || 'Unnamed Item'}</td>
+          <td>${u.category || '—'}</td>
+          <td>${u._source === 'uploaded' ? 'Upload' : 'API'}</td>
+          <td>${u.description || '—'}</td>
+          <td>${u.dateLost || u.date_found || '—'}</td>
+          <td>${u.locationLost || u.location_found || '—'}</td>
+          <td>${u.status || 'FOUND'}</td>
+          <td>${u.image_url || u.image ? `<button onclick="toggleImageInTable('img-${u._source}-${u.id}')">Expand Image</button>` : '—'}</td>
+          <td>
+            ${u._source === 'uploaded' ? `<button onclick="removeUpload(${u.id})">Remove</button>` : ''}
+          </td>
+        </tr>
+        ${ (u.image_url || u.image) ? `<tr id="img-${u._source}-${u.id}" style="display:none;"><td colspan="9" style="text-align:center;"><img src="${u.image_url || ''}" alt="${u.itemName || ''}" style="max-width:300px; max-height:300px; object-fit:contain;" /></td></tr>` : '' }
+      `).join('');
     }
 
     function updateStatus(id, newStatus) {
       const req = allRequests.find(r => r.id === id);
       if (!req) return;
       req.status = newStatus;
-      saveLocally();
-      renderRequests();
+      saveRequests();
+      renderRequestsTable();
     }
 
-    function clearAll() {
-      if (!confirm("Clear all requests? This cannot be undone.")) return;
-      localStorage.removeItem("lostRequests");
+    function clearAllRequests() {
+      if (!confirm('Clear all student requests? This cannot be undone.')) return;
+      localStorage.removeItem('lostRequests');
       allRequests = [];
-      renderRequests();
+      renderRequestsTable();
+    }
+
+    function clearAllUploads() {
+      if (!confirm('Clear all uploaded items? This cannot be undone.')) return;
+      localStorage.removeItem('foundItems');
+      uploadedItems = [];
+      renderUploadsTable();
     }
 
     function toggleImageInTable(rowId) {
       const el = document.getElementById(rowId);
       if (!el) return;
       el.style.display = el.style.display === 'none' ? '' : 'none';
+    }
+
+    function removeUpload(id) {
+      // remove by numeric or string id
+      uploadedItems = uploadedItems.filter(u => String(u.id) !== String(id));
+      try { localStorage.setItem('foundItems', JSON.stringify(uploadedItems)); } catch(e){}
+      renderUploadsTable();
     }
 
     // Load on page open
