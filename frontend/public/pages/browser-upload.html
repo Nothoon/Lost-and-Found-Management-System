@@ -82,9 +82,9 @@
       };
 
       // Save to localStorage
-      const existing = JSON.parse(localStorage.getItem("lostRequests") || "[]");
+      const existing = JSON.parse(localStorage.getItem("foundItems") || "[]");
       existing.unshift(formData);
-      localStorage.setItem("lostRequests", JSON.stringify(existing));
+      localStorage.setItem("foundItems", JSON.stringify(existing));
 
       document.getElementById("formMessage").textContent = "Your report has been submitted! We will notify you if your item is found.";
       document.getElementById("lostItemForm").reset();
