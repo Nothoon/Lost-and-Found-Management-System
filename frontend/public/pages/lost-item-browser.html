@@ -242,7 +242,7 @@
         <p id="loadingMsg" style="color: var(--color-text-muted);">Loading items...</p>
       `;
 
-      const localRequests = JSON.parse(localStorage.getItem("lostRequests") || "[]");
+      const localRequests = JSON.parse(localStorage.getItem("foundItems") || "[]");
       const localItems = localRequests.map(r => ({
         id:             r.id,
         name:           r.itemName,
