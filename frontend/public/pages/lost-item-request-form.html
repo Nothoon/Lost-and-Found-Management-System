@@ -72,7 +72,6 @@
   </form>
 
   <script>
-    // ── Prefill if coming from "This Is My Item" ──
     window.addEventListener("load", function () {
       const prefillRaw = localStorage.getItem("claimPrefill");
       if (!prefillRaw) return;
@@ -100,7 +99,7 @@
       localStorage.removeItem("claimPrefill");
     });
 
-    // ── Submit ──
+    // Submit
     document.getElementById("lostItemForm").addEventListener("submit", function (event) {
       event.preventDefault();
 
