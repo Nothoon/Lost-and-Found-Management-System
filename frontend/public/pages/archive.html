@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lost & Found — Archive</title>
+  <style>
+    #lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      z-index: 999;
+      justify-content: center;
+      align-items: center;
+    }
+    #lightbox.open { display: flex; }
+    #lightbox img {
+      max-width: 90vw;
+      max-height: 90vh;
+      border: 3px solid white;
+    }
+    #lightbox button {
+      position: absolute;
+      top: 16px;
+      right: 24px;
+      font-size: 1.4rem;
+      background: white;
+      border: none;
+      cursor: pointer;
+      padding: 4px 10px;
+    }
+    .thumb {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      cursor: pointer;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Archive</h1>
+  <p>All matched, claimed, and closed entries are logged here.</p>
+  <a href="employee-dashboard.html">← Back to Dashboard</a>
+
+  <hr>
+
+  <label for="typeFilter">Filter by type:</label>
+  <select id="typeFilter" onchange="renderArchive()">
+    <option value="">All</option>
+    <option value="matched">Matched</option>
+    <option value="claimed">Claimed (no request)</option>
+    <option value="closed">Closed</option>
+  </select>
+
+  <br><br>
+
+  <table border="1" cellpadding="6" cellspacing="0" style="width:100%; border-collapse:collapse;">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Archived At</th>
+        <th>Student Name</th>
+        <th>Email</th>
+        <th>Item Reported</th>
+        <th>Date Lost</th>
+        <th>Location Lost</th>
+        <th>Notify Via</th>
+        <th>Found Item</th>
+        <th>Category</th>
+        <th>Description</th>
+        <th>Location Found</th>
+        <th>Date Found</th>
+        <th>Logged By</th>
+        <th>Photo</th>
+      </tr>
+    </thead>
+    <tbody id="archiveBody">
+      <tr><td colspan="15">Loading...</td></tr>
+    </tbody>
+  </table>
+
+  <!-- Lightbox -->
+  <div id="lightbox" onclick="closeLightbox()">
+    <button onclick="closeLightbox()">✕ Close</button>
+    <img id="lightboxImg" src="" alt="Full size photo" />
+  </div>
+
+  <script>
+    let archive = [];
+
+    function loadArchive() {
+      archive = JSON.parse(localStorage.getItem("matchedArchive") || "[]");
+      renderArchive();
+    }
+
+    function renderArchive() {
+      const typeF = document.getElementById("typeFilter").value;
+      const tbody = document.getElementById("archiveBody");
+
+      const filtered = archive.filter(a => !typeF || a.type === typeF);
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='15'>No archived entries yet.</td></tr>";
+        return;
+      }
+
+      tbody.innerHTML = filtered.map((a, idx) => {
+        const req  = a.request   || {};
+        const item = a.foundItem || {};
+        const date = a.archivedAt ? new Date(a.archivedAt).toLocaleString() : "—";
+
+        const typeLabel = {
+          matched: "Matched",
+          claimed: "Claimed (no request)",
+          closed:  "Closed",
+        }[a.type] || a.type;
+
+        const photoCell = item.imageData
+          ? `<td style="text-align:center;">
+               <img class="thumb" src="${item.imageData}" alt="photo"
+                 onclick="openLightbox(${idx})" title="Click to enlarge" />
+             </td>`
+          : `<td style="color:#aaa; font-size:0.8rem;">No photo</td>`;
+
+        return `
+          <tr>
+            <td>${typeLabel}</td>
+            <td>${date}</td>
+            <td>${req.name         || "—"}</td>
+            <td>${req.email        || "—"}</td>
+            <td>${req.itemName     || "—"}</td>
+            <td>${req.dateLost     || "—"}</td>
+            <td>${req.locationLost || "—"}</td>
+            <td>${req.notify       || "—"}</td>
+            <td>${item.itemName      || "—"}</td>
+            <td>${item.category      || "—"}</td>
+            <td>${item.description   || "—"}</td>
+            <td>${item.locationFound || "—"}</td>
+            <td>${item.dateFound     || "—"}</td>
+            <td>${item.loggedBy      || "—"}</td>
+            ${photoCell}
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function openLightbox(idx) {
+      const entry = archive[idx];
+      if (!entry || !entry.foundItem || !entry.foundItem.imageData) return;
+      document.getElementById("lightboxImg").src = entry.foundItem.imageData;
+      document.getElementById("lightbox").classList.add("open");
+    }
+
+    function closeLightbox() {
+      document.getElementById("lightbox").classList.remove("open");
+      document.getElementById("lightboxImg").src = "";
+    }
+
+    loadArchive();
+  </script>
+</body>
+</html>

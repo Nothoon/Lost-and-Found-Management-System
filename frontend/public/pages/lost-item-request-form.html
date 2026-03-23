@@ -30,6 +30,15 @@
     <input type="radio" name="notifyEmail" value="both" /> Both &nbsp;
     <input type="radio" name="notifyEmail" value="none" /> None<br><br>
 
+    <label for="dateLost">Date Lost *</label><br>
+    <input type="date" id="dateLost" required /><br><br>
+
+    <hr>
+
+    <p id="prefillNote" style="display:none; background:#fffbe6; border:1px solid #ccc; padding:8px;">
+      The fields below have been prefilled based on the item you selected. Please review and confirm.
+    </p>
+
     <label for="itemName">Item Name *</label><br>
     <input type="text" id="itemName" placeholder="e.g. Black Backpack" required /><br><br>
 
@@ -49,14 +58,13 @@
     <label for="description">Item Description *</label><br>
     <textarea id="description" placeholder="Color, brand, size, any identifying marks..." rows="5" cols="50" required></textarea><br><br>
 
-    <label for="dateLost">Date Lost *</label><br>
-    <input type="date" id="dateLost" required /><br><br>
-
     <label for="locationLost">Location Lost (if known)</label><br>
     <input type="text" id="locationLost" placeholder="e.g. Library 2nd floor, Gym locker room" /><br><br>
 
     <label for="image">Upload a Photo (optional)</label><br>
     <input type="file" id="image" accept="image/*" /><br><br>
+
+    <input type="hidden" id="foundItemId" value="" />
 
     <button type="submit">Submit Report</button>
 
@@ -64,31 +72,77 @@
   </form>
 
   <script>
+    // ── Prefill if coming from "This Is My Item" ──
+    window.addEventListener("load", function () {
+      const prefillRaw = localStorage.getItem("claimPrefill");
+      if (!prefillRaw) return;
+
+      try {
+        const prefill = JSON.parse(prefillRaw);
+        if (prefill.itemName)     document.getElementById("itemName").value     = prefill.itemName;
+        if (prefill.description)  document.getElementById("description").value  = prefill.description;
+        if (prefill.locationLost) document.getElementById("locationLost").value = prefill.locationLost;
+        if (prefill.foundItemId)  document.getElementById("foundItemId").value  = prefill.foundItemId;
+        if (prefill.category) {
+          const select = document.getElementById("category");
+          for (let i = 0; i < select.options.length; i++) {
+            if (select.options[i].value === prefill.category) {
+              select.selectedIndex = i;
+              break;
+            }
+          }
+        }
+        document.getElementById("prefillNote").style.display = "block";
+      } catch (e) {
+        console.warn("Could not parse prefill:", e);
+      }
+
+      localStorage.removeItem("claimPrefill");
+    });
+
+    // ── Submit ──
     document.getElementById("lostItemForm").addEventListener("submit", function (event) {
       event.preventDefault();
 
-      const formData = {
-        id:           Date.now(),
-        name:         document.getElementById("name").value.trim(),
-        email:        document.getElementById("email").value.trim(),
-        phone:        document.getElementById("phone").value.trim(),
-        notify:       document.querySelector('input[name="notifyEmail"]:checked')?.value || "none",
-        itemName:     document.getElementById("itemName").value.trim(),
-        category:     document.getElementById("category").value,
-        description:  document.getElementById("description").value.trim(),
-        dateLost:     document.getElementById("dateLost").value,
-        locationLost: document.getElementById("locationLost").value.trim(),
-        status:       "new",
-        submittedAt:  new Date().toISOString(),
-      };
+      const fileInput = document.getElementById("image");
+      const file = fileInput.files[0];
 
-      // Save to localStorage
-      const existing = JSON.parse(localStorage.getItem("lostRequests") || "[]");
-      existing.unshift(formData);
-      localStorage.setItem("lostRequests", JSON.stringify(existing));
+      function saveRequest(imageData) {
+        const formData = {
+          id:           Date.now(),
+          name:         document.getElementById("name").value.trim(),
+          email:        document.getElementById("email").value.trim(),
+          phone:        document.getElementById("phone").value.trim(),
+          notify:       document.querySelector('input[name="notifyEmail"]:checked')?.value || "none",
+          itemName:     document.getElementById("itemName").value.trim(),
+          category:     document.getElementById("category").value,
+          description:  document.getElementById("description").value.trim(),
+          dateLost:     document.getElementById("dateLost").value,
+          locationLost: document.getElementById("locationLost").value.trim(),
+          foundItemId:  document.getElementById("foundItemId").value || null,
+          imageData:    imageData || "",
+          status:       "new",
+          submittedAt:  new Date().toISOString(),
+        };
 
-      document.getElementById("formMessage").textContent = "Your report has been submitted! We will notify you if your item is found.";
-      document.getElementById("lostItemForm").reset();
+        const existing = JSON.parse(localStorage.getItem("lostRequests") || "[]");
+        existing.unshift(formData);
+        localStorage.setItem("lostRequests", JSON.stringify(existing));
+
+        document.getElementById("formMessage").textContent = "Your report has been submitted! We will notify you if your item is found.";
+        document.getElementById("lostItemForm").reset();
+        document.getElementById("prefillNote").style.display = "none";
+      }
+
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          saveRequest(e.target.result);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        saveRequest("");
+      }
     });
   </script>
 </body>

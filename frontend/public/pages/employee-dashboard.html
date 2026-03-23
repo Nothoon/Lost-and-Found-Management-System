@@ -4,42 +4,98 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lost & Found — Employee Dashboard</title>
+  <style>
+    #lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      z-index: 999;
+      justify-content: center;
+      align-items: center;
+    }
+    #lightbox.open { display: flex; }
+    #lightbox img {
+      max-width: 90vw;
+      max-height: 90vh;
+      border: 3px solid white;
+    }
+    #lightbox button {
+      position: absolute;
+      top: 16px;
+      right: 24px;
+      font-size: 1.4rem;
+      background: white;
+      border: none;
+      cursor: pointer;
+      padding: 4px 10px;
+    }
+    .thumb {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      cursor: pointer;
+      border: 1px solid #ccc;
+    }
+    .badge-hidden {
+      display: inline-block;
+      background: #b91c1c;
+      color: white;
+      font-size: 0.7rem;
+      font-weight: bold;
+      padding: 2px 7px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+  </style>
 </head>
 <body>
 
   <h1>Employee Dashboard</h1>
-  <p>Manage student reports (left) and employee-uploaded items (right).</p>
+  <p>
+    Left: select a student request. Right: select a found item. Then click <strong>Match Selected</strong>.<br>
+    To mark a found item as picked up without a request, select only the found item and click <strong>Mark as Claimed</strong>.
+  </p>
   <a href="employee-login.html">Log Out</a>
-  <a href="browser-upload.html">Browser Upload</a>
+  &nbsp;|&nbsp;
+  <a href="browser-upload.html">+ Log Found Item</a>
+  &nbsp;|&nbsp;
+  <a href="archive.html">View Archive</a>
 
   <hr>
 
+  <!-- Action Bar -->
+  <div style="background:#fffbe6; border:1px solid #ccc; padding:10px; margin-bottom:12px;">
+    <strong>Actions:</strong>
+    &nbsp;&nbsp;
+    Request: <strong id="selectedRequestLabel">None</strong>
+    &nbsp;&nbsp;|&nbsp;&nbsp;
+    Found Item: <strong id="selectedItemLabel">None</strong>
+    &nbsp;&nbsp;
+    <button id="matchBtn" onclick="confirmMatch()" disabled>Match Selected</button>
+    &nbsp;
+    <button id="claimBtn" onclick="markClaimed()" disabled>Mark as Claimed</button>
+    &nbsp;
+    <button onclick="clearSelections()">Clear Selections</button>
+    <span id="matchMessage" style="margin-left:12px; color:green;"></span>
+  </div>
+
   <div style="display:flex; gap:16px; align-items:flex-start;">
+
     <!-- Left: Student Requests -->
     <div style="flex:1; min-width:320px;">
       <h2>Student Requests</h2>
+
       <label for="searchInput">Search:</label>
       <input type="text" id="searchInput" placeholder="Name, item, or email..." oninput="renderAll()" />
 
-      &nbsp;
-
-      <label for="statusFilter">Status:</label>
-      <select id="statusFilter" onchange="renderAll()">
-        <option value="">All</option>
-        <option value="new">New</option>
-        <option value="matched">Matched</option>
-        <option value="notified">Notified</option>
-        <option value="closed">Closed</option>
-      </select>
-
-      &nbsp;
-
-      <button onclick="clearAllRequests()">Clear All Requests</button>
-
-      <div style="max-height:60vh; overflow:auto; border:1px solid #e1e1e1; margin-top:8px;">
+      <div style="max-height:60vh; overflow:auto; border:1px solid #ccc; margin-top:8px;">
         <table border="1" cellpadding="6" cellspacing="0" style="width:100%; border-collapse:collapse;">
           <thead>
             <tr>
+              <th>Select</th>
+              <th>Photo</th>
               <th>Name</th>
               <th>Email</th>
               <th>Phone</th>
@@ -49,60 +105,80 @@
               <th>Date Lost</th>
               <th>Location</th>
               <th>Notify Via</th>
-              <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody id="requestsBody">
-            <tr><td colspan="11">No requests yet.</td></tr>
+            <tr><td colspan="12">No requests yet.</td></tr>
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- Right: Employee Uploads -->
+    <!-- Right: Found Items -->
     <div style="flex:1; min-width:320px;">
-      <h2>Employee Uploaded Items</h2>
-      <button onclick="clearAllUploads()">Clear Uploaded Items</button>
-      <div style="max-height:60vh; overflow:auto; border:1px solid #e1e1e1; margin-top:8px;">
+      <h2>Found Items</h2>
+
+      <div style="max-height:60vh; overflow:auto; border:1px solid #ccc; margin-top:8px;">
         <table border="1" cellpadding="6" cellspacing="0" style="width:100%; border-collapse:collapse;">
           <thead>
             <tr>
-              <th>Item</th>
+              <th>Select</th>
+              <th>Photo</th>
+              <th>Item Name</th>
               <th>Category</th>
-              <th>Source</th>
               <th>Description</th>
-              <th>Date</th>
-              <th>Location</th>
-              <th>Status</th>
-              <th>Image</th>
-              <th>Actions</th>
+              <th>Location Found</th>
+              <th>Date Found</th>
+              <th>Logged By</th>
+              <th>Visibility</th>
             </tr>
           </thead>
           <tbody id="uploadsBody">
-            <tr><td colspan="9">No uploaded items.</td></tr>
+            <tr><td colspan="9">No found items yet.</td></tr>
           </tbody>
         </table>
       </div>
     </div>
+
+  </div>
+
+  <!-- Lightbox -->
+  <div id="lightbox" onclick="closeLightbox()">
+    <button onclick="closeLightbox()">✕ Close</button>
+    <img id="lightboxImg" src="" alt="Full size photo" />
   </div>
 
   <script>
-  let allRequests = [];
-  let uploadedItems = [];
-  let apiItems = [];
+    let allRequests   = [];
+    let uploadedItems = [];
 
-    function loadRequests() {
-      allRequests = JSON.parse(localStorage.getItem("lostRequests") || "[]");
-      // Employee uploads are stored under 'foundItems' by the browser upload page
-      uploadedItems = JSON.parse(localStorage.getItem("foundItems") || "[]");
-      // API-provided found items are stored under 'apiFoundItems' (separate to avoid overwrite)
-      apiItems = JSON.parse(localStorage.getItem("apiFoundItems") || "[]");
+    let selectedRequestId = null;
+    let selectedItemId    = null;
+
+    // ── Load ──
+    function loadAll() {
+      const allStored = JSON.parse(localStorage.getItem("lostRequests") || "[]");
+      allRequests = allStored.filter(r => r.status === "new" || r.status === "notified");
+
+      const allItems = JSON.parse(localStorage.getItem("foundItems") || "[]");
+      uploadedItems = allItems.filter(u => u.status !== "matched" && u.status !== "claimed");
+
       renderAll();
     }
 
-    function saveRequests() {
-      localStorage.setItem("lostRequests", JSON.stringify(allRequests));
+    function updateFullList(key, updatedItem) {
+      const list = JSON.parse(localStorage.getItem(key) || "[]");
+      const idx  = list.findIndex(x => x.id === updatedItem.id);
+      if (idx !== -1) list[idx] = updatedItem;
+      else list.unshift(updatedItem);
+      localStorage.setItem(key, JSON.stringify(list));
+    }
+
+    function sendToArchive(entry) {
+      const archive = JSON.parse(localStorage.getItem("matchedArchive") || "[]");
+      archive.unshift(entry);
+      localStorage.setItem("matchedArchive", JSON.stringify(archive));
     }
 
     function renderAll() {
@@ -110,114 +186,244 @@
       renderUploadsTable();
     }
 
-    function renderRequestsTable() {
-      const search  = document.getElementById("searchInput").value.toLowerCase();
-      const statusF = document.getElementById("statusFilter").value;
-      const tbody   = document.getElementById("requestsBody");
+    // ── Shared photo cell ──
+    function photoCell(imageData, id, table) {
+      if (imageData) {
+        return `<td style="text-align:center;">
+          <img class="thumb" src="${imageData}" alt="photo"
+            onclick="openLightbox('${table}', ${id})" title="Click to enlarge" />
+        </td>`;
+      }
+      return `<td style="color:#aaa; font-size:0.8rem; text-align:center;">No photo</td>`;
+    }
 
-      const filtered = allRequests.filter(r => {
-        const matchSearch = !search ||
-          (r.name && r.name.toLowerCase().includes(search)) ||
-          (r.itemName && r.itemName.toLowerCase().includes(search)) ||
-          (r.email && r.email.toLowerCase().includes(search));
-        const matchStatus = !statusF || r.status === statusF;
-        return matchSearch && matchStatus;
-      });
+    // ── Student requests table ──
+    function renderRequestsTable() {
+      const search = document.getElementById("searchInput").value.toLowerCase();
+      const tbody  = document.getElementById("requestsBody");
+
+      const filtered = allRequests.filter(r =>
+        !search ||
+        (r.name     && r.name.toLowerCase().includes(search))     ||
+        (r.itemName && r.itemName.toLowerCase().includes(search)) ||
+        (r.email    && r.email.toLowerCase().includes(search))
+      );
 
       if (filtered.length === 0) {
-        tbody.innerHTML = "<tr><td colspan='11'>No requests found.</td></tr>";
+        tbody.innerHTML = "<tr><td colspan='12'>No active requests.</td></tr>";
         return;
       }
 
-      tbody.innerHTML = filtered.map(r => `
-        <tr>
-          <td>${r.name}</td>
-          <td>${r.email}</td>
-          <td>${r.phone || '—'}</td>
-          <td>${r.itemName}</td>
-          <td>${r.category || '—'}</td>
-          <td>${r.description}</td>
-          <td>${r.dateLost || '—'}</td>
-          <td>${r.locationLost || '—'}</td>
-          <td>${r.notify || '—'}</td>
-          <td>${r.status}</td>
-          <td>
-            ${r.status === 'new'     ? `<button onclick="updateStatus(${r.id}, 'matched')">Mark Matched</button>` : ''}
-            ${r.status === 'matched' ? `<button onclick="updateStatus(${r.id}, 'notified')">Mark Notified</button>` : ''}
-            ${r.status !== 'closed'  ? `<button onclick="updateStatus(${r.id}, 'closed')">Close</button>` : ''}
-          </td>
-        </tr>
-      `).join('');
+      tbody.innerHTML = filtered.map(r => {
+        const isSelected = r.id === selectedRequestId;
+        return `
+          <tr style="background:${isSelected ? "#d4edff" : ""};">
+            <td style="text-align:center;">
+              <input type="radio" name="selectedRequest"
+                ${isSelected ? "checked" : ""}
+                onchange="selectRequest(${r.id}, '${escapeAttr(r.itemName)}')" />
+            </td>
+            ${photoCell(r.imageData, r.id, "req")}
+            <td>${r.name}</td>
+            <td>${r.email}</td>
+            <td>${r.phone || "—"}</td>
+            <td>${r.itemName}</td>
+            <td>${r.category || "—"}</td>
+            <td>${r.description}</td>
+            <td>${r.dateLost || "—"}</td>
+            <td>${r.locationLost || "—"}</td>
+            <td>${r.notify || "—"}</td>
+            <td>
+              <button onclick="closeRequest(${r.id})">Close</button>
+            </td>
+          </tr>
+        `;
+      }).join("");
     }
 
+    // ── Found items table ──
     function renderUploadsTable() {
-      const tbody = document.getElementById('uploadsBody');
+      const tbody = document.getElementById("uploadsBody");
+
       if (!uploadedItems || uploadedItems.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8">No uploaded items.</td></tr>';
+        tbody.innerHTML = "<tr><td colspan='9'>No found items yet.</td></tr>";
         return;
       }
 
-      // Combine uploaded items (by employees) and API-provided items, but keep actions limited to uploaded items
-      const displayItems = [
-        ...(uploadedItems || []).map(u => ({...u, _source: 'uploaded'})),
-        ...(apiItems || []).map(a => ({...a, _source: 'api'}))
-      ];
+      tbody.innerHTML = uploadedItems.map(u => {
+        const isSelected = u.id === selectedItemId;
 
-      tbody.innerHTML = displayItems.map(u => `
-        <tr>
-          <td>${u.itemName || u.name || 'Unnamed Item'}</td>
-          <td>${u.category || '—'}</td>
-          <td>${u._source === 'uploaded' ? 'Upload' : 'API'}</td>
-          <td>${u.description || '—'}</td>
-          <td>${u.dateLost || u.date_found || '—'}</td>
-          <td>${u.locationLost || u.location_found || '—'}</td>
-          <td>${u.status || 'FOUND'}</td>
-          <td>${u.image_url || u.image ? `<button onclick="toggleImageInTable('img-${u._source}-${u.id}')">Expand Image</button>` : '—'}</td>
-          <td>
-            ${u._source === 'uploaded' ? `<button onclick="removeUpload(${u.id})">Remove</button>` : ''}
-          </td>
-        </tr>
-        ${ (u.image_url || u.image) ? `<tr id="img-${u._source}-${u.id}" style="display:none;"><td colspan="9" style="text-align:center;"><img src="${u.image_url || ''}" alt="${u.itemName || ''}" style="max-width:300px; max-height:300px; object-fit:contain;" /></td></tr>` : '' }
-      `).join('');
+        const visibilityCell = u.hidden
+          ? `<td style="text-align:center;"><span class="badge-hidden">Hidden</span></td>`
+          : `<td style="text-align:center; color:green; font-size:0.85rem;">Public</td>`;
+
+        return `
+          <tr style="background:${isSelected ? "#d4edff" : ""};">
+            <td style="text-align:center;">
+              <input type="radio" name="selectedItem"
+                ${isSelected ? "checked" : ""}
+                onchange="selectItem(${u.id}, '${escapeAttr(u.itemName)}')" />
+            </td>
+            ${photoCell(u.imageData, u.id, "item")}
+            <td>${u.itemName || "—"}</td>
+            <td>${u.category || "—"}</td>
+            <td>${u.description || "—"}</td>
+            <td>${u.locationFound || "—"}</td>
+            <td>${u.dateFound || "—"}</td>
+            <td>${u.loggedBy || "—"}</td>
+            ${visibilityCell}
+          </tr>
+        `;
+      }).join("");
     }
 
-    function updateStatus(id, newStatus) {
+    // ── Lightbox ──
+    function openLightbox(table, id) {
+      let src = "";
+      if (table === "req") {
+        const r = allRequests.find(r => r.id === id);
+        src = r?.imageData || "";
+      } else {
+        const u = uploadedItems.find(u => u.id === id);
+        src = u?.imageData || "";
+      }
+      if (!src) return;
+      document.getElementById("lightboxImg").src = src;
+      document.getElementById("lightbox").classList.add("open");
+    }
+
+    function closeLightbox() {
+      document.getElementById("lightbox").classList.remove("open");
+      document.getElementById("lightboxImg").src = "";
+    }
+
+    // ── Selection ──
+    function selectRequest(id, label) {
+      selectedRequestId = id;
+      document.getElementById("selectedRequestLabel").textContent = label;
+      document.getElementById("matchMessage").textContent = "";
+      updateButtons();
+      renderRequestsTable();
+    }
+
+    function selectItem(id, label) {
+      selectedItemId = id;
+      document.getElementById("selectedItemLabel").textContent = label;
+      document.getElementById("matchMessage").textContent = "";
+      updateButtons();
+      renderUploadsTable();
+    }
+
+    function updateButtons() {
+      document.getElementById("matchBtn").disabled = !(selectedRequestId && selectedItemId);
+      document.getElementById("claimBtn").disabled = !selectedItemId;
+    }
+
+    function clearSelections() {
+      selectedRequestId = null;
+      selectedItemId    = null;
+      document.getElementById("selectedRequestLabel").textContent = "None";
+      document.getElementById("selectedItemLabel").textContent    = "None";
+      document.getElementById("matchMessage").textContent         = "";
+      document.getElementById("matchBtn").disabled = true;
+      document.getElementById("claimBtn").disabled = true;
+      renderAll();
+    }
+
+    // ── Match ──
+    function confirmMatch() {
+      if (!selectedRequestId || !selectedItemId) return;
+
+      const req  = allRequests.find(r => r.id === selectedRequestId);
+      const item = uploadedItems.find(u => u.id === selectedItemId);
+      if (!req || !item) return;
+
+      req.status  = "matched";
+      item.status = "matched";
+
+      updateFullList("lostRequests", req);
+      updateFullList("foundItems", item);
+
+      sendToArchive({
+        id:         Date.now(),
+        type:       "matched",
+        request:    req,
+        foundItem:  item,
+        archivedAt: new Date().toISOString(),
+      });
+
+      allRequests   = allRequests.filter(r => r.id !== req.id);
+      uploadedItems = uploadedItems.filter(u => u.id !== item.id);
+
+      document.getElementById("matchMessage").textContent =
+        `✓ Matched: "${req.itemName}" (${req.name}) → "${item.itemName}"`;
+
+      clearSelections();
+    }
+
+    // ── Mark as Claimed (no request) ──
+    function markClaimed() {
+      if (!selectedItemId) return;
+
+      const item = uploadedItems.find(u => u.id === selectedItemId);
+      if (!item) return;
+
+      if (!confirm(`Mark "${item.itemName}" as claimed (picked up without a request)?`)) return;
+
+      item.status = "claimed";
+      updateFullList("foundItems", item);
+
+      sendToArchive({
+        id:         Date.now(),
+        type:       "claimed",
+        request:    null,
+        foundItem:  item,
+        archivedAt: new Date().toISOString(),
+      });
+
+      uploadedItems = uploadedItems.filter(u => u.id !== item.id);
+
+      document.getElementById("matchMessage").textContent =
+        `✓ "${item.itemName}" marked as claimed and archived.`;
+
+      clearSelections();
+    }
+
+    // ── Close request ──
+    function closeRequest(id) {
+      if (!confirm("Close this request and move it to the archive?")) return;
+
       const req = allRequests.find(r => r.id === id);
       if (!req) return;
-      req.status = newStatus;
-      saveRequests();
+
+      req.status = "closed";
+      updateFullList("lostRequests", req);
+
+      sendToArchive({
+        id:         Date.now(),
+        type:       "closed",
+        request:    req,
+        foundItem:  null,
+        archivedAt: new Date().toISOString(),
+      });
+
+      allRequests = allRequests.filter(r => r.id !== id);
+
+      if (selectedRequestId === id) {
+        selectedRequestId = null;
+        document.getElementById("selectedRequestLabel").textContent = "None";
+        updateButtons();
+      }
+
       renderRequestsTable();
     }
 
-    function clearAllRequests() {
-      if (!confirm('Clear all student requests? This cannot be undone.')) return;
-      localStorage.removeItem('lostRequests');
-      allRequests = [];
-      renderRequestsTable();
+    function escapeAttr(str) {
+      if (!str) return "";
+      return String(str).replace(/\\/g, "\\\\").replace(/'/g, "\\'");
     }
 
-    function clearAllUploads() {
-      if (!confirm('Clear all uploaded items? This cannot be undone.')) return;
-      localStorage.removeItem('foundItems');
-      uploadedItems = [];
-      renderUploadsTable();
-    }
-
-    function toggleImageInTable(rowId) {
-      const el = document.getElementById(rowId);
-      if (!el) return;
-      el.style.display = el.style.display === 'none' ? '' : 'none';
-    }
-
-    function removeUpload(id) {
-      // remove by numeric or string id
-      uploadedItems = uploadedItems.filter(u => String(u.id) !== String(id));
-      try { localStorage.setItem('foundItems', JSON.stringify(uploadedItems)); } catch(e){}
-      renderUploadsTable();
-    }
-
-    // Load on page open
-    loadRequests();
+    loadAll();
   </script>
 </body>
 </html>

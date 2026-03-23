@@ -3,34 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lost & Found — Broswer Upload</title>
+  <title>Lost & Found — Log Found Item</title>
 </head>
 <body>
 
-  <h1>Upload Lost Item</h1>
-  <a href="employee-dashboard.html">Back to Dashboard</a>
+  <h1>Log a Found Item</h1>
+  <p>Use this form to log an item that was turned in at the front desk.</p>
+  <a href="employee-dashboard.html">← Back to Dashboard</a>
 
   <hr>
 
-  <form id="lostItemForm">
-
-    <label for="name">Full Name *</label><br>
-    <input type="text" id="name" placeholder="Your full name" required /><br><br>
-
-    <label for="email">Email Address *</label><br>
-    <input type="email" id="email" placeholder="name@university.edu" required /><br><br>
-
-    <label for="phone">Phone Number (optional)</label><br>
-    <input type="tel" id="phone" placeholder="(555) 000-0000" /><br><br>
-
-    <label>Would you like notifications?</label><br>
-    <input type="radio" name="notifyEmail" value="email" checked /> Email only &nbsp;
-    <input type="radio" name="notifyEmail" value="sms" /> SMS only &nbsp;
-    <input type="radio" name="notifyEmail" value="both" /> Both &nbsp;
-    <input type="radio" name="notifyEmail" value="none" /> None<br><br>
+  <form id="foundItemForm">
 
     <label for="itemName">Item Name *</label><br>
-    <input type="text" id="itemName" placeholder="e.g. Black Backpack" required /><br><br>
+    <input type="text" id="itemName" placeholder="e.g. Black Backpack, iPhone, Car Keys" required /><br><br>
 
     <label for="category">Category *</label><br>
     <select id="category" required>
@@ -45,49 +31,75 @@
       <option value="other">Other</option>
     </select><br><br>
 
-    <label for="description">Item Description *</label><br>
-    <textarea id="description" placeholder="Color, brand, size, any identifying marks..." rows="5" cols="50" required></textarea><br><br>
+    <label for="description">Description *</label><br>
+    <textarea id="description" placeholder="Color, brand, model, condition, any identifying marks..." rows="4" cols="50" required></textarea><br><br>
 
-    <label for="dateLost">Date Lost *</label><br>
-    <input type="date" id="dateLost" required /><br><br>
+    <label for="locationFound">Location Found *</label><br>
+    <input type="text" id="locationFound" placeholder="e.g. Library 2nd floor, Cafeteria table 7" required /><br><br>
 
-    <label for="locationLost">Location Lost (if known)</label><br>
-    <input type="text" id="locationLost" placeholder="e.g. Library 2nd floor, Gym locker room" /><br><br>
+    <label for="dateFound">Date Found *</label><br>
+    <input type="date" id="dateFound" required /><br><br>
 
-    <label for="image">Upload a Photo (optional)</label><br>
+    <label for="loggedBy">Logged By *</label><br>
+    <input type="text" id="loggedBy" placeholder="Your name or employee ID" required /><br><br>
+
+    <label for="image">Photo (optional)</label><br>
     <input type="file" id="image" accept="image/*" /><br><br>
 
-    <button type="submit">Submit Report</button>
+    <hr>
+
+    <label>
+      <input type="checkbox" id="hidden" />
+      &nbsp;<strong>Mark as Hidden</strong>
+    </label><br>
+    <small>Hidden items will NOT appear on the public lost item browser. Only employees can see them on the dashboard. Use this for sensitive or high-value items (e.g. wallets, IDs, keys, cash).</small>
+
+    <br><br>
+
+    <button type="submit">Log Item</button>
 
     <p id="formMessage"></p>
   </form>
 
   <script>
-    document.getElementById("lostItemForm").addEventListener("submit", function (event) {
+    document.getElementById("foundItemForm").addEventListener("submit", function (event) {
       event.preventDefault();
 
-      const formData = {
-        id:           Date.now(),
-        name:         document.getElementById("name").value.trim(),
-        email:        document.getElementById("email").value.trim(),
-        phone:        document.getElementById("phone").value.trim(),
-        notify:       document.querySelector('input[name="notifyEmail"]:checked')?.value || "none",
-        itemName:     document.getElementById("itemName").value.trim(),
-        category:     document.getElementById("category").value,
-        description:  document.getElementById("description").value.trim(),
-        dateLost:     document.getElementById("dateLost").value,
-        locationLost: document.getElementById("locationLost").value.trim(),
-        status:       "new",
-        submittedAt:  new Date().toISOString(),
-      };
+      const fileInput = document.getElementById("image");
+      const file = fileInput.files[0];
 
-      // Save to localStorage
-      const existing = JSON.parse(localStorage.getItem("foundItems") || "[]");
-      existing.unshift(formData);
-      localStorage.setItem("foundItems", JSON.stringify(existing));
+      function saveItem(imageData) {
+        const formData = {
+          id:            Date.now(),
+          itemName:      document.getElementById("itemName").value.trim(),
+          category:      document.getElementById("category").value,
+          description:   document.getElementById("description").value.trim(),
+          locationFound: document.getElementById("locationFound").value.trim(),
+          dateFound:     document.getElementById("dateFound").value,
+          loggedBy:      document.getElementById("loggedBy").value.trim(),
+          imageData:     imageData || "",
+          hidden:        document.getElementById("hidden").checked,
+          status:        "new",
+          loggedAt:      new Date().toISOString(),
+        };
 
-      document.getElementById("formMessage").textContent = "Your upload has been submitted!";
-      document.getElementById("lostItemForm").reset();
+        const existing = JSON.parse(localStorage.getItem("foundItems") || "[]");
+        existing.unshift(formData);
+        localStorage.setItem("foundItems", JSON.stringify(existing));
+
+        document.getElementById("formMessage").textContent = "Item logged successfully!";
+        document.getElementById("foundItemForm").reset();
+      }
+
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          saveItem(e.target.result);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        saveItem("");
+      }
     });
   </script>
 </body>
